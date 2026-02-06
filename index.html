@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ICC T20 World Cup 2026 | LIVE</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <style>
+        :root {
+            --primary: #ff3e3e;
+            --glass: rgba(0, 0, 0, 0.75);
+            --border: rgba(255, 255, 255, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #050505;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+            transition: background-image 1s ease-in-out;
+        }
+
+        /* --- RESPONSIVE HEADER --- */
+        .main-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 12px 25px;
+            border-radius: 27px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            width: fit-content;
+            max-width: 95%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.464);
+        }
+
+        .logo {
+            height: clamp(40px, 8vw, 60px);
+            width: auto;
+        }
+
+        .header-text h1 {
+            color: #fff;
+            font-size: clamp(1rem, 4vw, 1.4rem);
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .status {
+            color: var(--primary);
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 1.5px;
+        }
+
+        /* --- PLAYER CONTAINER --- */
+        .player-card {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            border: 1px solid var(--border);
+            aspect-ratio: 16 / 9;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* --- UI OVERLAYS --- */
+        .live-tag {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--primary);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            z-index: 5;
+        }
+
+        .controls-bar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            padding: 15px 20px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.95));
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .player-card:hover .controls-bar, 
+        .player-card:active .controls-bar {
+            opacity: 1;
+        }
+
+        button, select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        button:hover, select:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        select {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px 12px;
+            outline: none;
+        }
+
+        .volume-slider {
+            width: 80px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .spacer { flex: 1; }
+
+        /* --- TV & MOBILE ADJUSTMENTS --- */
+        @media (max-width: 600px) {
+            .volume-slider { display: none; } /* Hide volume on mobile (physical buttons used) */
+            .controls-bar { padding: 10px; gap: 8px; }
+            body { padding: 10px; }
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            animation: pulse-kf 1.5s infinite;
+        }
+        @keyframes pulse-kf { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .hide-cursor { cursor: none; }
+    </style>
+</head>
+<body>
+
+    <header class="main-header">
+        <img src="https://upload.wikimedia.org/wikipedia/en/thumb/f/fa/2026_ICC_Men%27s_T20_World_Cup_logo.svg/250px-2026_ICC_Men%27s_T20_World_Cup_logo.svg.png" 
+             alt="Logo" class="logo">
+        <div class="header-text">
+            <h1>T20 World Cup</h1>
+            <div class="status"><div class="pulse"></div> LIVE 2026</div>
+        </div>
+    </header>
+
+    <div class="player-card" id="videoBox">
+        <div class="live-tag">LIVE HD</div>
+        
+        <video id="mainVideo" playsinline></video>
+
+        <div class="controls-bar">
+            <button id="playBtn">▶</button>
+            <input type="range" id="volBar" class="volume-slider" min="0" max="1" step="0.1" value="1">
+            
+            <div class="spacer"></div>
+
+            <select id="qualitySel">
+                <option value="-1">AUTO QUALITY</option>
+            </select>
+
+            <button id="fsBtn">⛶</button>
+        </div>
+ </div>
+ <div style="margin-top: 22px;"> </div> 
+
+<div class="schedule-container" style="border-radius: 16px;position: relative; overflow: hidden; width: 95%; padding-top: 150%;">
+    <iframe 
+        src="https://insights.t20worldcup.com/chat/home" 
+        style="position: absolute; top: 0; left: 0; bottom: 0; right: 0; width: 100%; height: 100%; border: 2px;"
+        allowfullscreen>
+    </iframe>
+</div>
+
+    <script>
+        const video = document.getElementById('mainVideo');
+        const playBtn = document.getElementById('playBtn');
+        const volBar = document.getElementById('volBar');
+        const fsBtn = document.getElementById('fsBtn');
+        const qualitySel = document.getElementById('qualitySel');
+        const videoBox = document.getElementById('videoBox');
+
+        // Replace with your real .m3u8 link
+        const streamSrc = "https://ktvhdsg.ekantipur.com:8443/high_quality_85840165/hd/kantipurtv/hd_1080/chunks.m3u8";
+
+        let hls;
+
+        if (Hls.isSupported()) {
+            hls = new Hls();
+            hls.loadSource(streamSrc);
+            hls.attachMedia(video);
+
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                // Populate Quality Changer
+                const levels = hls.levels;
+                levels.forEach((level, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = index;
+                    opt.innerHTML = level.height + "p";
+                    qualitySel.appendChild(opt);
+                });
+                video.play().catch(() => { console.log("Autoplay blocked"); });
+            });
+
+            // Handle Quality Change
+            qualitySel.onchange = (e) => {
+                hls.currentLevel = parseInt(e.target.value);
+            };
+
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = streamSrc;
+        }
+
+        /* --- CONTROL LOGIC --- */
+        playBtn.onclick = () => {
+            if (video.paused) {
+                video.play();
+                playBtn.innerText = "⏸";
+            } else {
+                video.pause();
+                playBtn.innerText = "▶";
+            }
+        };
+
+        volBar.oninput = (e) => {
+            video.volume = e.target.value;
+            video.muted = false;
+        };
+
+        fsBtn.onclick = () => {
+            if (!document.fullscreenElement) {
+                if (videoBox.requestFullscreen) videoBox.requestFullscreen();
+                else if (videoBox.webkitRequestFullscreen) videoBox.webkitRequestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        // Smart TV / Desktop Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') { e.preventDefault(); playBtn.click(); }
+            if (e.key.toLowerCase() === 'f') fsBtn.click();
+        });
+
+        /* --- WALLPAPER ENGINE --- */
+        function loadWall() {
+            const w = window.screen.width;
+            const h = window.screen.height;
+            const url = `https://picsum.photos/${w}/${h}?blur=1?random=${Date.now()}`;
+            
+            const preloader = new Image();
+            preloader.src = url;
+            preloader.onload = () => {
+                document.body.style.backgroundImage = `url('${url}')`;
+            };
+        }
+        loadWall();
+
+        // Auto-hide controls for TV/Desktop
+        let timer;
+        const hideUI = () => {
+            document.querySelector('.controls-bar').style.opacity = '1';
+            videoBox.classList.remove('hide-cursor');
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                if (!video.paused) {
+                    document.querySelector('.controls-bar').style.opacity = '0';
+                    if (document.fullscreenElement) videoBox.classList.add('hide-cursor');
+                }
+            }, 3000);
+        };
+        videoBox.onmousemove = hideUI;
+        videoBox.ontouchstart = hideUI;
+    </script>
+
+</body>
+</html>
